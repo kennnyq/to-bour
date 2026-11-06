@@ -1,3 +1,24 @@
+# Python
 __pycache__/
 *.pyc
+
+# macOS
 .DS_Store
+
+# Unity (generated per machine)
+unity/*/[Ll]ibrary/
+unity/*/[Tt]emp/
+unity/*/[Oo]bj/
+unity/*/[Bb]uild/
+unity/*/[Bb]uilds/
+unity/*/[Ll]ogs/
+unity/*/[Uu]ser[Ss]ettings/
+unity/*/[Mm]emory[Cc]aptures/
+unity/*/results/
+unity/*/Assets/ML-Agents/Timers/
+unity/*/Assets/ML-Agents/Timers.meta
+*.csproj
+*.sln
+.vs/
+.vscode/
+.idea/
