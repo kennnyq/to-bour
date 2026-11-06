@@ -16,7 +16,7 @@ training runs.
 <sub>Trained policy on the early robot design, October 2024. Cropped from screen recordings of the Unity editor
 (<a href="docs/media/tobour-prototype-1.mp4">MP4 1</a>, <a href="docs/media/tobour-prototype-2.mp4">MP4 2</a>).</sub>
 
-## The paper, and how we split it
+## Background
 
 The paper trains a separate policy for each parkour skill in simulation, using one simple reward.
 It first lets the robot pass through obstacles ("soft" dynamics) and then makes them solid ("hard"
@@ -42,15 +42,17 @@ low-cost quadruped robots. Our team divided that pipeline:
   with a penalty if the robot tips past angle limits, drifts to the beam edge, or falls off. Reaching
   the end of the track earns a bonus and drops the target speed to zero, so the policy also has to learn
   to stop.
-- **Soft/hard dynamics toggle** in the agent, mirroring the paper's two-stage setup.
 - **Curriculum training with PPO**: each training area places the robot on a beam. As reward
   crosses each lesson's threshold, the curriculum widens the range of beam widths (from a fixed width
   to 0.4–10 units) and target speeds (from a fixed speed to 0–2).
 - **Experiment loop**: 11 training runs over Oct 20–26, 2024, each 19–90M environment steps.
   Between runs I changed the reward weights and the curriculum (table below).
+- **The TO-Bour robot (December 2024)**: moved the agent onto the team's Blender-modeled robot
+  body. Added a soft/hard dynamics toggle that mirrors the paper's two-stage setup, privileged
+  observations of the obstacle ahead (distance, length, height), and an energy cost based on torque ×
+  joint velocity, closer to the paper's.
 
-The agent code started from the Crawler example in Unity ML-Agents and was reworked around the
-paper's reward.
+I wrote the agent, controller, and reward code directly on the ML-Agents `Agent` API.
 
 ## Training
 
@@ -83,9 +85,37 @@ About 447M environment steps in total, read from the runs' TensorBoard logs with
 **Setup:** Unity 2022.3, ML-Agents (Python package 1.1.0), PyTorch. PPO with a 3×512 network,
 LSTM memory, and a small curiosity bonus.
 
+## Code
+
+| Folder | What it is |
+| --- | --- |
+| [`unity/early-design`](unity/early-design) | October 2024: the early robot on the beam, matching the clips and training runs above. Includes the trained policy from run `crawler11`. |
+| [`unity/to-bour`](unity/to-bour) | December 2024: the TO-Bour robot with obstacle courses and the soft/hard dynamics toggle. No trained policy included. |
+
+Each folder is a standalone Unity project. To open one:
+
+1. Install Unity **2022.3.49f1** and Git. The ML-Agents package (`release_22`) installs from GitHub
+   when the project first opens.
+2. In Unity Hub, choose **Add project from disk** and select the folder.
+3. Open `Assets/Scenes/Crawler.unity`.
+
+In `early-design`, one training area has the trained policy attached. Press Play with no trainer
+running to watch it walk the beam.
+
+To train, install the ML-Agents Python package (`pip install mlagents==1.1.0`, Python 3.10), then run
+`mlagents-learn config/crawler.yaml --run-id=<name>` from the project folder and press Play in Unity.
+In `to-bour`, choose the course on the agent component of the robot prefab: set `obstacleType` to
+`RUNNING`, `LEAPING`, `CLIMBING`, or `CRAWLING`, and toggle `useSoftDynamics`.
+
 ## Credits
 
 - Ziwen Zhuang, Zipeng Fu, et al., [Robot Parkour Learning](https://robot-parkour.github.io), CoRL 2023,
   the paper this project set out to replicate.
-- [Unity ML-Agents](https://github.com/Unity-Technologies/ml-agents) (Apache License 2.0); the
-  agent code started from its Crawler example.
+- The obstacle-course generation in `unity/to-bour` is Sarah Ibadi's, and the TO-Bour robot model is
+  the team's.
+- [Unity ML-Agents](https://github.com/Unity-Technologies/ml-agents) (Apache License 2.0).
+  `GroundContact.cs` is adapted from its examples; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+
+## License
+
+MIT; see [`LICENSE`](LICENSE). `GroundContact.cs` remains under the Apache License 2.0.
